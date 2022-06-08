@@ -23,11 +23,11 @@ interface IPage {
 
 export default function Home(): JSX.Element {
   async function fetchData({ pageParam = null }): Promise<IPage> {
-    if (pageParam) {
-      const response = await api.get(`/images?after=${pageParam}`);
-      return response.data;
-    }
-    const response = await api.get('/images');
+    const response = await api.get('/api/images', {
+      params: {
+        after: pageParam,
+      },
+    });
     return response.data;
   }
 
@@ -49,7 +49,6 @@ export default function Home(): JSX.Element {
 
       return flattedData;
     }
-
     return [];
   }, [data]);
 
