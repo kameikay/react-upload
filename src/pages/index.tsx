@@ -8,7 +8,29 @@ import { api } from '../services/api';
 import { Loading } from '../components/Loading';
 import { Error } from '../components/Error';
 
+interface IData {
+  description: string;
+  title: string;
+  id: string;
+  ts: number;
+  url: string;
+}
+
+interface IPage {
+  after: string | null;
+  data: IData[];
+}
+
 export default function Home(): JSX.Element {
+  async function fetchData({ pageParam = null }): Promise<IPage> {
+    if (pageParam) {
+      const response = await api.get(`/images?after=${pageParam}`);
+      return response.data;
+    }
+    const response = await api.get('/images');
+    return response.data;
+  }
+
   const {
     data,
     isLoading,
@@ -16,20 +38,28 @@ export default function Home(): JSX.Element {
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
-  } = useInfiniteQuery(
-    'images',
-    // TODO AXIOS REQUEST WITH PARAM
-    ,
-    // TODO GET AND RETURN NEXT PAGE PARAM
-  );
+  } = useInfiniteQuery('images', fetchData, {
+    getNextPageParam: lastPage => lastPage.after,
+  });
 
   const formattedData = useMemo(() => {
-    // TODO FORMAT AND FLAT DATA ARRAY
+    if (data) {
+      const mappedData = data.pages.map(page => page.data);
+      const flattedData = mappedData.flat();
+
+      return flattedData;
+    }
+
+    return [];
   }, [data]);
 
-  // TODO RENDER LOADING SCREEN
+  if (isLoading) {
+    return <Loading />;
+  }
 
-  // TODO RENDER ERROR SCREEN
+  if (isError) {
+    return <Error />;
+  }
 
   return (
     <>
@@ -37,7 +67,22 @@ export default function Home(): JSX.Element {
 
       <Box maxW={1120} px={20} mx="auto" my={20}>
         <CardList cards={formattedData} />
-        {/* TODO RENDER LOAD MORE BUTTON IF DATA HAS NEXT PAGE */}
+
+        {hasNextPage && !isFetchingNextPage && (
+          <Button
+            colorScheme="orange"
+            onClick={() => fetchNextPage()}
+            mt="40px"
+          >
+            Carregar mais
+          </Button>
+        )}
+
+        {isFetchingNextPage && (
+          <Button colorScheme="orange" mt="40px">
+            Carregando...
+          </Button>
+        )}
       </Box>
     </>
   );

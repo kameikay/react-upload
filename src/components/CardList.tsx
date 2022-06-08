@@ -1,9 +1,10 @@
+/* eslint-disable react/jsx-no-bind */
 import { SimpleGrid, useDisclosure } from '@chakra-ui/react';
 import { useState } from 'react';
 import { Card } from './Card';
 import { ModalViewImage } from './Modal/ViewImage';
 
-interface Card {
+export interface Card {
   title: string;
   description: string;
   url: string;
@@ -16,17 +17,25 @@ interface CardsProps {
 }
 
 export function CardList({ cards }: CardsProps): JSX.Element {
-  // TODO MODAL USEDISCLOSURE
+  const [imgUrl, setImgUrl] = useState<string>('');
+  const { onClose, isOpen, onToggle } = useDisclosure();
 
-  // TODO SELECTED IMAGE URL STATE
-
-  // TODO FUNCTION HANDLE VIEW IMAGE
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  function handleViewImage(url: string) {
+    onToggle();
+    setImgUrl(url);
+  }
 
   return (
     <>
-      {/* TODO CARD GRID */}
+      <SimpleGrid columns={3} spacing="40px">
+        {cards &&
+          cards.map(card => (
+            <Card key={card.id} data={card} viewImage={handleViewImage} />
+          ))}
+      </SimpleGrid>
 
-      {/* TODO MODALVIEWIMAGE */}
+      <ModalViewImage isOpen={isOpen} imgUrl={imgUrl} onClose={onClose} />
     </>
   );
 }
